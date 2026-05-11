@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата перевода</title>
+    <title>Оплата через Т-Банк</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -62,6 +62,9 @@
             width: 100%;
             margin-top: 8px;
             transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
         .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-outline {
@@ -88,18 +91,23 @@
             margin: 5px 0;
         }
         
-        .qr-wrapper {
-            margin: 20px auto;
-            padding: 15px;
-            background: white;
-            border: 1px solid #e5e5ea;
-            border-radius: 16px;
-            display: inline-block;
+        .hint {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 15px;
         }
-        canvas { display: block; }
         
-        .error { color: #ff3b30; font-size: 13px; margin-top: 6px; display: none; }
-        .hint { font-size: 12px; color: #8e8e93; margin-top: 15px; }
+        .bank-notice {
+            background: #f2f2f7;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 14px;
+            color: #3a3a3c;
+            margin: 15px 0;
+            text-align: left;
+            line-height: 1.4;
+        }
+        .bank-notice strong { color: #1d1d1f; }
     </style>
 </head>
 <body>
@@ -109,38 +117,38 @@
     <div id="screen1">
         <h2>Данные для перевода</h2>
         <div class="input-group">
-            <label>Телефон (10 цифр без +7)</label>
+            <label>Телефон получателя (10 цифр без +7)</label>
             <input type="tel" id="phone" placeholder="9001234567" maxlength="10" inputmode="numeric">
-            <div class="error" id="phoneError">Введите ровно 10 цифр</div>
+            <div class="error" id="phoneError" style="color:#ff3b30;font-size:13px;margin-top:6px;display:none;">Введите ровно 10 цифр</div>
         </div>
         <div class="input-group">
             <label>Сумма (₽)</label>
             <input type="number" id="amount" placeholder="590" value="590">
-            <div class="error" id="amountError">Минимум 10 ₽</div>
+            <div class="error" id="amountError" style="color:#ff3b30;font-size:13px;margin-top:6px;display:none;">Минимум 10 ₽</div>
         </div>
-        <div class="input-group">
-            <label>Банк получателя</label>
-            <input type="text" id="bank" value="sberbank" placeholder="sberbank / tinkoff / vtb">
-        </div>
-        <button class="btn" id="generateBtn">Сгенерировать QR и ссылку</button>
-        <div class="hint">Комиссия 0% · Безопасно · СБП</div>
+        <button class="btn" id="generateBtn">Сформировать перевод</button>
+        <div class="hint">Комиссия 0% · СБП · Перевод по номеру телефона</div>
     </div>
 
-    <!-- ЭКРАН 2: QR И КНОПКА ОПЛАТЫ -->
+    <!-- ЭКРАН 2: ИНСТРУКЦИЯ И КНОПКА -->
     <div class="result" id="screen2">
         <div class="amount-big"><span id="showAmount">590</span> ₽</div>
         <div class="masked-phone" id="showPhone">+7 *** ***-**-**</div>
         
-        <div class="qr-wrapper">
-            <canvas id="qrCanvas" width="220" height="220"></canvas>
+        <div class="bank-notice">
+            <strong>⚠️ Инструкция:</strong><br>
+            1. Нажмите кнопку ниже, вы перейдёте в Т-Банк.<br>
+            2. Войдите в личный кабинет по номеру телефона (обычно вход без пароля, по СМС).<br>
+            3. Выберите «Платежи» → «По номеру телефона» и введите номер получателя, указанный на этой странице.<br>
+            4. Укажите сумму и подтвердите перевод.
         </div>
-        <p style="font-size:13px;color:#8e8e93;margin:5px 0;">Наведите камеру телефона</p>
         
-        <a class="btn" id="payBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
-            💳 Оплатить через приложение
+        <!-- КНОПКА НА Т-БАНК -->
+        <a class="btn" id="tbankBtn" href="https://www.tbank.ru/login/" target="_blank" rel="noopener noreferrer">
+            💳 Перейти в Т-Банк для оплаты
         </a>
         <button class="btn btn-outline" id="backBtn">← Назад</button>
-        <div class="hint">Нажмите кнопку выше или отсканируйте QR</div>
+        <div class="hint">Кнопка откроет официальный сайт Т-Банка</div>
     </div>
 </div>
 
@@ -153,7 +161,6 @@
     // Поля ввода
     const phoneInp = document.getElementById('phone');
     const amountInp = document.getElementById('amount');
-    const bankInp = document.getElementById('bank');
     
     // Ошибки
     const phoneErr = document.getElementById('phoneError');
@@ -162,42 +169,11 @@
     // Кнопки
     const genBtn = document.getElementById('generateBtn');
     const backBtn = document.getElementById('backBtn');
-    const payBtn = document.getElementById('payBtn');
+    const tbankBtn = document.getElementById('tbankBtn');
     
     // Отображение
     const showAmount = document.getElementById('showAmount');
     const showPhone = document.getElementById('showPhone');
-    const qrCanvas = document.getElementById('qrCanvas');
-    
-    let currentSbpLink = '';
-
-    // ========== ГЕНЕРАЦИЯ QR БЕЗ БИБЛИОТЕКИ (чистый canvas) ==========
-    function generateQRCode(url, size) {
-        const canvas = qrCanvas;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, size, size);
-        
-        // Используем внешний API Google для генерации QR (надёжно и без библиотек)
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(url);
-        
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0, size, size);
-        };
-        img.onerror = function() {
-            // Фолбэк — рисуем заглушку
-            ctx.fillStyle = '#f0f0f5';
-            ctx.fillRect(0, 0, size, size);
-            ctx.fillStyle = '#ff3b30';
-            ctx.font = '14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('QR не загрузился', size/2, size/2 - 10);
-            ctx.fillText('Проверьте интернет', size/2, size/2 + 20);
-        };
-    }
 
     // ========== МАСКИРОВКА ТЕЛЕФОНА ==========
     function maskPhone(phone) {
@@ -230,29 +206,16 @@
         return valid;
     }
 
-    // ========== ГЕНЕРАЦИЯ ==========
+    // ========== ГЕНЕРАЦИЯ ЭКРАНА ОПЛАТЫ ==========
     function generate() {
         if (!validate()) return;
         
         const phone = phoneInp.value.trim();
         const amount = amountInp.value.trim();
-        const bank = bankInp.value.trim().toLowerCase() || 'sberbank';
-        
-        const fullPhone = '7' + phone;
-        
-        // Ссылка СБП
-        currentSbpLink = 'https://qr.nspk.ru/transfer?bank=' + bank + '&phone=' + fullPhone + '&sum=' + amount + '&cur=RUB';
         
         // Отображаем данные
         showAmount.textContent = amount;
         showPhone.textContent = maskPhone(phone);
-        
-        // Генерируем QR (220x220)
-        generateQRCode(currentSbpLink, 220);
-        
-        // Настраиваем кнопку оплаты
-        payBtn.href = currentSbpLink;
-        payBtn.target = '_blank';
         
         // Переключаем экраны
         scr1.style.display = 'none';
@@ -263,18 +226,7 @@
     function goBack() {
         scr2.style.display = 'none';
         scr1.style.display = 'block';
-        currentSbpLink = '';
     }
-
-    // ========== ОБРАБОТЧИК НА КНОПКУ ОПЛАТЫ (прямое открытие) ==========
-    payBtn.addEventListener('click', function(e) {
-        if (!currentSbpLink) {
-            e.preventDefault();
-            return;
-        }
-        // Пытаемся открыть приложение
-        window.open(currentSbpLink, '_blank');
-    });
 
     // ========== ПРИВЯЗКА СОБЫТИЙ ==========
     genBtn.addEventListener('click', generate);
@@ -283,7 +235,6 @@
     // Enter в поле телефона или суммы тоже запускает генерацию
     phoneInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
     amountInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
-    bankInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
     
 })();
 </script>

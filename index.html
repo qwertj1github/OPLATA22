@@ -120,6 +120,9 @@
             margin-top: 6px;
             transition: 0.2s;
             letter-spacing: 0.3px;
+            text-decoration: none;
+            display: block;
+            text-align: center;
         }
         .btn:active { transform: scale(0.97); }
         .btn-outline {
@@ -134,6 +137,19 @@
             margin-top: 12px;
         }
         .game-btn:hover { background: #5a4bd1; }
+        .vk-btn {
+            background: #0077ff;
+            color: #fff;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .vk-btn:hover { background: #0066dd; }
+        .vk-sub {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+            font-style: italic;
+        }
         
         /* Экран QR */
         .qr-screen { display: none; }
@@ -190,6 +206,13 @@
         </div>
         <button class="btn" id="genQrBtn">💛 Оплатить — показать QR</button>
         <button class="btn game-btn" id="playGameBtn">🕹️ Поиграть в Пакман</button>
+        
+        <!-- КНОПКА ВК -->
+        <a class="btn vk-btn" href="https://vk.com/ladno124" target="_blank" rel="noopener noreferrer">
+            💬 Тебе сюда
+        </a>
+        <p class="vk-sub">дешёвый порошок</p>
+        
         <p class="footer">Все средства идут на лечение и реабилитацию</p>
     </div>
     
@@ -220,12 +243,10 @@
 
 <script>
 (function(){
-    // ==================== НАСТРОЙКИ ====================
     const PHONE = '79527760444';
     const BANK = 'tinkoff';
     const RECIPIENT = 'Саша Беляков';
     
-    // ==================== DOM ====================
     const mainScr = document.getElementById('mainScreen');
     const qrScr = document.getElementById('qrScreen');
     const gameScr = document.getElementById('gameScreen');
@@ -245,7 +266,6 @@
     
     let selectedAmount = 500;
     
-    // ==================== ВЫБОР СУММЫ ====================
     grid.addEventListener('click', e => {
         const btn = e.target.closest('.amt');
         if (!btn) return;
@@ -268,30 +288,21 @@
         if (!isNaN(val) && val >= 10) { selectedAmount = val; errEl.style.display = 'none'; }
     });
     
-    // ==================== QR-КОД (чистый canvas, без внешних API) ====================
     function buildSbpUrl() {
         return 'https://qr.nspk.ru/transfer?bank=' + BANK +
             '&phone=' + PHONE + '&sum=' + selectedAmount +
             '&cur=RUB&purpose=' + encodeURIComponent('Помощь ' + RECIPIENT + ' на лечение');
     }
     
-    // Простейший QR-кодер (работает всегда, не требует интернета)
     function generateQR(text, canvas, size) {
         const ctx = canvas.getContext('2d');
         canvas.width = size; canvas.height = size;
         ctx.fillStyle = '#fff'; ctx.fillRect(0,0,size,size);
-        
-        // Используем QR Code Generator API от goQR (резервный, но пока оставим canvas-заглушку)
-        // Так как чистый QR-кодер без библиотеки громоздкий - используем data URI через внешний https
         const img = new Image();
         img.crossOrigin = 'Anonymous';
         const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(text);
-        
-        img.onload = function() {
-            ctx.drawImage(img, 0, 0, size, size);
-        };
+        img.onload = function() { ctx.drawImage(img, 0, 0, size, size); };
         img.onerror = function() {
-            // Если API недоступен - пишем текст
             ctx.fillStyle = '#000';
             ctx.font = '14px monospace';
             ctx.textAlign = 'center';
@@ -337,7 +348,6 @@
         const W = 360, H = 360;
         canvas.width = W; canvas.height = H;
         
-        // Карта: 0-пусто, 1-стена, 2-точка
         const map = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
             [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1],
@@ -376,66 +386,37 @@
         let gameOver = false;
         
         function draw() {
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0,0,W,H);
-            
-            // Стены
+            ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
             ctx.fillStyle = '#2121de';
             walls.forEach(w => {
                 ctx.fillRect(w.x, w.y, w.w, w.h);
-                ctx.strokeStyle = '#4a4aff';
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#4a4aff'; ctx.lineWidth = 1;
                 ctx.strokeRect(w.x+1, w.y+1, w.w-2, w.h-2);
             });
-            
-            // Точки
             ctx.fillStyle = '#f5c542';
-            dots.forEach(d => {
-                ctx.beginPath();
-                ctx.arc(d.x, d.y, 3, 0, Math.PI*2);
-                ctx.fill();
-            });
-            
-            // Пакман
-            ctx.fillStyle = '#ffff00';
-            ctx.beginPath();
+            dots.forEach(d => { ctx.beginPath(); ctx.arc(d.x, d.y, 3, 0, Math.PI*2); ctx.fill(); });
+            ctx.fillStyle = '#ffff00'; ctx.beginPath();
             let mouth = 0.2;
             if (pac.dir==='right') ctx.arc(pac.x, pac.y, pac.r, mouth, Math.PI*2-mouth);
             else if (pac.dir==='left') ctx.arc(pac.x, pac.y, pac.r, Math.PI+mouth, Math.PI-mouth);
             else if (pac.dir==='up') ctx.arc(pac.x, pac.y, pac.r, -Math.PI/2+mouth, Math.PI/2-mouth);
             else ctx.arc(pac.x, pac.y, pac.r, Math.PI/2+mouth, -Math.PI/2-mouth);
-            ctx.lineTo(pac.x, pac.y);
-            ctx.fill();
-            
-            // Призраки
+            ctx.lineTo(pac.x, pac.y); ctx.fill();
             ghosts.forEach(g => {
-                ctx.fillStyle = g.col;
-                ctx.beginPath();
+                ctx.fillStyle = g.col; ctx.beginPath();
                 ctx.arc(g.x, g.y, cell*0.35, 0, Math.PI, true);
-                ctx.lineTo(g.x-cell*0.35, g.y);
-                ctx.fill();
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(g.x-5, g.y-4, 4, 0, Math.PI*2);
-                ctx.arc(g.x+5, g.y-4, 4, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(g.x-5, g.y-4, 2, 0, Math.PI*2);
-                ctx.arc(g.x+5, g.y-4, 2, 0, Math.PI*2);
-                ctx.fill();
+                ctx.lineTo(g.x-cell*0.35, g.y); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath();
+                ctx.arc(g.x-5, g.y-4, 4, 0, Math.PI*2); ctx.arc(g.x+5, g.y-4, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000'; ctx.beginPath();
+                ctx.arc(g.x-5, g.y-4, 2, 0, Math.PI*2); ctx.arc(g.x+5, g.y-4, 2, 0, Math.PI*2); ctx.fill();
             });
-            
             scoreDisplay.textContent = score;
             if (gameOver) {
-                ctx.fillStyle = 'rgba(0,0,0,0.7)';
-                ctx.fillRect(0,0,W,H);
-                ctx.fillStyle = '#fff';
-                ctx.font = '24px sans-serif';
-                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0,0,W,H);
+                ctx.fillStyle = '#fff'; ctx.font = '24px sans-serif'; ctx.textAlign = 'center';
                 ctx.fillText('Игра окончена!', W/2, H/2);
-                ctx.font = '14px sans-serif';
-                ctx.fillText('Очки: ' + score, W/2, H/2+30);
+                ctx.font = '14px sans-serif'; ctx.fillText('Очки: ' + score, W/2, H/2+30);
             }
         }
         
@@ -448,36 +429,24 @@
         
         function update() {
             if (gameOver) return;
-            
-            // Пакман
             let dx=0, dy=0;
             if (pac.nextDir==='right') { dx=pac.speed; dy=0; }
             if (pac.nextDir==='left') { dx=-pac.speed; dy=0; }
             if (pac.nextDir==='up') { dx=0; dy=-pac.speed; }
             if (pac.nextDir==='down') { dx=0; dy=pac.speed; }
-            if (!collides(pac.x+dx, pac.y+dy, pac.r-2)) {
-                pac.dir = pac.nextDir;
-            }
+            if (!collides(pac.x+dx, pac.y+dy, pac.r-2)) pac.dir = pac.nextDir;
             dx=0; dy=0;
             if (pac.dir==='right') dx=pac.speed;
             if (pac.dir==='left') dx=-pac.speed;
             if (pac.dir==='up') dy=-pac.speed;
             if (pac.dir==='down') dy=pac.speed;
-            if (!collides(pac.x+dx, pac.y+dy, pac.r-2)) {
-                pac.x += dx; pac.y += dy;
-            }
-            // Туннели
+            if (!collides(pac.x+dx, pac.y+dy, pac.r-2)) { pac.x += dx; pac.y += dy; }
             if (pac.x < 0) pac.x = W;
             if (pac.x > W) pac.x = 0;
-            
-            // Сбор точек
             for (let i=dots.length-1; i>=0; i--) {
                 let d = dots[i];
-                let dist = Math.hypot(pac.x-d.x, pac.y-d.y);
-                if (dist < pac.r+4) { dots.splice(i,1); score += 10; }
+                if (Math.hypot(pac.x-d.x, pac.y-d.y) < pac.r+4) { dots.splice(i,1); score += 10; }
             }
-            
-            // Призраки
             ghosts.forEach(g => {
                 let gx=0, gy=0;
                 if (g.dir==='right') gx=g.speed;
@@ -485,20 +454,11 @@
                 if (g.dir==='up') gy=-g.speed;
                 if (g.dir==='down') gy=g.speed;
                 if (collides(g.x+gx, g.y+gy, cell*0.3)) {
-                    let dirs = ['right','left','up','down'];
-                    g.dir = dirs[Math.floor(Math.random()*4)];
-                } else {
-                    g.x += gx; g.y += gy;
-                }
-                if (Math.random() < 0.02) {
-                    let dirs = ['right','left','up','down'];
-                    g.dir = dirs[Math.floor(Math.random()*4)];
-                }
-                if (Math.hypot(pac.x-g.x, pac.y-g.y) < pac.r+cell*0.3) {
-                    gameOver = true;
-                }
+                    g.dir = ['right','left','up','down'][Math.floor(Math.random()*4)];
+                } else { g.x += gx; g.y += gy; }
+                if (Math.random() < 0.02) g.dir = ['right','left','up','down'][Math.floor(Math.random()*4)];
+                if (Math.hypot(pac.x-g.x, pac.y-g.y) < pac.r+cell*0.3) gameOver = true;
             });
-            
             if (dots.length === 0) gameOver = true;
             draw();
         }
@@ -513,37 +473,21 @@
             e.preventDefault();
         }
         
-        // Свайпы для мобильных
         let touchStartX=0, touchStartY=0;
-        canvas.addEventListener('touchstart', e => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        });
+        canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
         canvas.addEventListener('touchend', e => {
             let dx = e.changedTouches[0].clientX - touchStartX;
             let dy = e.changedTouches[0].clientY - touchStartY;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                pac.nextDir = dx > 0 ? 'right' : 'left';
-            } else {
-                pac.nextDir = dy > 0 ? 'down' : 'up';
-            }
+            pac.nextDir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
         });
         
         draw();
         gameInterval = setInterval(update, 40);
-        
-        return {
-            stop: () => {
-                clearInterval(gameInterval);
-                document.removeEventListener('keydown', handleKey);
-            }
-        };
+        return { stop: () => { clearInterval(gameInterval); document.removeEventListener('keydown', handleKey); } };
     }
     
     playGameBtn.addEventListener('click', () => {
-        mainScr.style.display = 'none';
-        qrScr.style.display = 'none';
-        gameScr.style.display = 'block';
+        mainScr.style.display = 'none'; qrScr.style.display = 'none'; gameScr.style.display = 'block';
         if (pacmanGame) pacmanGame.stop();
         pacmanGame = initPacman();
     });
@@ -551,10 +495,8 @@
     closeGameBtn.addEventListener('click', () => {
         if (pacmanGame) pacmanGame.stop();
         pacmanGame = null;
-        gameScr.style.display = 'none';
-        mainScr.style.display = 'block';
+        gameScr.style.display = 'none'; mainScr.style.display = 'block';
     });
-    
 })();
 </script>
 </body>

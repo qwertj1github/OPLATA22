@@ -3,238 +3,363 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата через Т-Банк</title>
+    <title>Помощь Саше Белякову</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f0f0f5;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            color: #fff;
         }
         .card {
-            background: white;
-            border-radius: 24px;
-            padding: 35px 25px;
-            max-width: 420px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 35px 25px 30px;
+            max-width: 440px;
             width: 100%;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
             text-align: center;
         }
-        h2 { font-size: 22px; margin-bottom: 25px; color: #1d1d1f; }
-        
-        .input-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
+        .flag-ribbon {
+            display: inline-block;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e53);
+            color: white;
+            font-weight: 700;
             font-size: 12px;
-            font-weight: 600;
-            color: #8e8e93;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            padding: 6px 20px;
+            border-radius: 20px;
+            margin-bottom: 15px;
         }
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e5e5ea;
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .subtitle {
+            font-size: 15px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .highlight {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.5;
+        }
+        .highlight strong {
+            color: #ffd166;
+            font-weight: 600;
+        }
+        .phone-badge {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 14px;
-            font-size: 17px;
-            outline: none;
+            padding: 10px 20px;
+            display: inline-block;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        .amount-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .amount-btn {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.15);
+            color: white;
+            padding: 14px 8px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
             transition: 0.2s;
         }
-        .input-group input:focus { border-color: #007aff; }
+        .amount-btn:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.4);
+        }
+        .amount-btn.selected {
+            background: #ffd166;
+            border-color: #ffd166;
+            color: #1a1a2e;
+        }
+        .custom-amount {
+            display: none;
+            margin-bottom: 18px;
+        }
+        .custom-amount input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.08);
+            color: white;
+            font-size: 17px;
+            outline: none;
+            text-align: center;
+        }
+        .custom-amount input::placeholder { color: rgba(255,255,255,0.4); }
+        .custom-amount input:focus { border-color: #ffd166; }
         
         .btn {
-            background: #007aff;
-            color: white;
+            background: #ffd166;
+            color: #1a1a2e;
             border: none;
-            padding: 15px;
-            font-size: 17px;
-            font-weight: 600;
-            border-radius: 14px;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 16px;
             cursor: pointer;
             width: 100%;
-            margin-top: 8px;
+            margin-top: 5px;
             transition: 0.2s;
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            letter-spacing: 0.5px;
         }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn:active { transform: scale(0.97); opacity: 0.9; }
         .btn-outline {
-            background: white;
-            color: #007aff;
-            border: 2px solid #007aff;
+            background: transparent;
+            color: #ffd166;
+            border: 2px solid #ffd166;
             margin-top: 10px;
-        }
-        
-        .result { display: none; margin-top: 20px; }
-        .masked-phone {
-            font-size: 22px;
             font-weight: 600;
-            background: #f2f2f7;
-            padding: 8px 18px;
-            border-radius: 12px;
+        }
+        
+        /* Экран с QR */
+        .result-screen { display: none; }
+        .qr-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
             display: inline-block;
-            margin: 10px 0;
-            letter-spacing: 1px;
+            margin: 20px 0 15px;
         }
-        .amount-big {
-            font-size: 42px;
-            font-weight: 700;
+        .qr-wrapper canvas { display: block; }
+        .amount-display {
+            font-size: 48px;
+            font-weight: 800;
             margin: 5px 0;
+            color: #ffd166;
         }
-        
-        .hint {
-            font-size: 12px;
-            color: #8e8e93;
-            margin-top: 15px;
+        .recipient-display {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: rgba(255,255,255,0.9);
         }
-        
-        .bank-notice {
-            background: #f2f2f7;
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 14px;
-            color: #3a3a3c;
-            margin: 15px 0;
-            text-align: left;
-            line-height: 1.4;
+        .qr-hint {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin: 5px 0 15px;
         }
-        .bank-notice strong { color: #1d1d1f; }
+        .footer-note {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 20px;
+        }
+        .error-text {
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="card" id="app">
-    <!-- ЭКРАН 1: ВВОД ДАННЫХ -->
-    <div id="screen1">
-        <h2>Данные для перевода</h2>
-        <div class="input-group">
-            <label>Телефон получателя (10 цифр без +7)</label>
-            <input type="tel" id="phone" placeholder="9001234567" maxlength="10" inputmode="numeric">
-            <div class="error" id="phoneError" style="color:#ff3b30;font-size:13px;margin-top:6px;display:none;">Введите ровно 10 цифр</div>
+    <!-- ЭКРАН 1: ВЫБОР СУММЫ -->
+    <div id="screenMain">
+        <div class="flag-ribbon">🇷🇺 ПОМОЩЬ БОЙЦУ</div>
+        <h1>Перевод на лечение<br>Саши Белякова</h1>
+        <p class="subtitle">Саша сейчас в армии. Ему нужна наша поддержка.<br>Любая сумма поможет приблизить его выздоровление.</p>
+        
+        <div class="highlight">
+            📱 Номер для перевода:<br>
+            <strong>+7 952 776-04-44</strong> (Т-Банк)
         </div>
-        <div class="input-group">
-            <label>Сумма (₽)</label>
-            <input type="number" id="amount" placeholder="590" value="590">
-            <div class="error" id="amountError" style="color:#ff3b30;font-size:13px;margin-top:6px;display:none;">Минимум 10 ₽</div>
+        
+        <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 12px;">Выберите сумму перевода:</p>
+        <div class="amount-grid" id="amountGrid">
+            <div class="amount-btn" data-amount="300">300 ₽</div>
+            <div class="amount-btn" data-amount="500">500 ₽</div>
+            <div class="amount-btn" data-amount="1000">1000 ₽</div>
+            <div class="amount-btn" data-amount="2000">2000 ₽</div>
+            <div class="amount-btn" data-amount="5000">5000 ₽</div>
+            <div class="amount-btn" data-amount="other">Другая</div>
         </div>
-        <button class="btn" id="generateBtn">Сформировать перевод</button>
-        <div class="hint">Комиссия 0% · СБП · Перевод по номеру телефона</div>
+        
+        <div class="custom-amount" id="customAmountBlock">
+            <input type="number" id="customAmountInput" placeholder="Введите сумму в рублях" min="10" inputmode="numeric">
+            <div class="error-text" id="amountError">Пожалуйста, введите сумму не менее 10 ₽</div>
+        </div>
+        
+        <button class="btn" id="openQrBtn">💛 Оплатить — открыть QR-код</button>
+        <p class="footer-note">Все средства пойдут на лечение и реабилитацию</p>
     </div>
 
-    <!-- ЭКРАН 2: ИНСТРУКЦИЯ И КНОПКА -->
-    <div class="result" id="screen2">
-        <div class="amount-big"><span id="showAmount">590</span> ₽</div>
-        <div class="masked-phone" id="showPhone">+7 *** ***-**-**</div>
+    <!-- ЭКРАН 2: QR И КНОПКА ОПЛАТЫ -->
+    <div class="result-screen" id="screenQr">
+        <div class="flag-ribbon">🇷🇺 СПАСИБО ЗА ПОДДЕРЖКУ</div>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 8px;">Перевод на лечение</p>
+        <div class="recipient-display">Саша Беляков</div>
+        <div class="amount-display"><span id="qrAmount">500</span> ₽</div>
         
-        <div class="bank-notice">
-            <strong>⚠️ Инструкция:</strong><br>
-            1. Нажмите кнопку ниже, вы перейдёте в Т-Банк.<br>
-            2. Войдите в личный кабинет по номеру телефона (обычно вход без пароля, по СМС).<br>
-            3. Выберите «Платежи» → «По номеру телефона» и введите номер получателя, указанный на этой странице.<br>
-            4. Укажите сумму и подтвердите перевод.
+        <!-- QR-код -->
+        <div class="qr-wrapper">
+            <canvas id="qrCanvas" width="230" height="230"></canvas>
         </div>
+        <p class="qr-hint">📷 Наведите камеру телефона на QR-код<br>или нажмите кнопку ниже</p>
         
-        <!-- КНОПКА НА Т-БАНК -->
-        <a class="btn" id="tbankBtn" href="https://www.tbank.ru/login/" target="_blank" rel="noopener noreferrer">
-            💳 Перейти в Т-Банк для оплаты
+        <!-- Кнопка перехода в Т-Банк -->
+        <a class="btn" id="tbankDirectBtn" href="#" target="_blank">
+            💳 Оплатить через Т-Банк
         </a>
-        <button class="btn btn-outline" id="backBtn">← Назад</button>
-        <div class="hint">Кнопка откроет официальный сайт Т-Банка</div>
+        <button class="btn btn-outline" id="backToMainBtn">← Назад к выбору суммы</button>
+        <p class="footer-note">Перевод по СБП без комиссии</p>
     </div>
 </div>
 
 <script>
 (function() {
-    // Экраны
-    const scr1 = document.getElementById('screen1');
-    const scr2 = document.getElementById('screen2');
+    const PHONE = '79527760444';           // Номер получателя (без +)
+    const PHONE_DISPLAY = '+7 952 776-04-44';
+    const BANK = 'tinkoff';                 // Идентификатор Т-Банка для СБП
+    const RECIPIENT = 'Саша Беляков';
     
-    // Поля ввода
-    const phoneInp = document.getElementById('phone');
-    const amountInp = document.getElementById('amount');
+    let selectedAmount = 500;              // Сумма по умолчанию
     
-    // Ошибки
-    const phoneErr = document.getElementById('phoneError');
-    const amountErr = document.getElementById('amountError');
+    const scrMain = document.getElementById('screenMain');
+    const scrQr = document.getElementById('screenQr');
+    const amountGrid = document.getElementById('amountGrid');
+    const customBlock = document.getElementById('customAmountBlock');
+    const customInput = document.getElementById('customAmountInput');
+    const amountError = document.getElementById('amountError');
+    const openQrBtn = document.getElementById('openQrBtn');
+    const backBtn = document.getElementById('backToMainBtn');
+    const qrAmount = document.getElementById('qrAmount');
+    const tbankBtn = document.getElementById('tbankDirectBtn');
+    const qrCanvas = document.getElementById('qrCanvas');
     
-    // Кнопки
-    const genBtn = document.getElementById('generateBtn');
-    const backBtn = document.getElementById('backBtn');
-    const tbankBtn = document.getElementById('tbankBtn');
-    
-    // Отображение
-    const showAmount = document.getElementById('showAmount');
-    const showPhone = document.getElementById('showPhone');
-
-    // ========== МАСКИРОВКА ТЕЛЕФОНА ==========
-    function maskPhone(phone) {
-        if (phone.length === 10) {
-            return '+7 ' + phone.substr(0,3) + ' ***-**-' + phone.substr(8,2);
-        }
-        return '+7 *** ***-**-**';
-    }
-
-    // ========== ПРОВЕРКИ ==========
-    function validate() {
-        let valid = true;
-        const phone = phoneInp.value.trim();
-        const amount = parseInt(amountInp.value, 10);
+    // ================== ВЫБОР СУММЫ ==================
+    amountGrid.addEventListener('click', function(e) {
+        const btn = e.target.closest('.amount-btn');
+        if (!btn) return;
         
-        if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-            phoneErr.style.display = 'block';
-            valid = false;
+        // Снимаем выделение со всех
+        document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        
+        const value = btn.dataset.amount;
+        if (value === 'other') {
+            customBlock.style.display = 'block';
+            customInput.focus();
         } else {
-            phoneErr.style.display = 'none';
+            customBlock.style.display = 'none';
+            selectedAmount = parseInt(value, 10);
+            amountError.style.display = 'none';
         }
-        
-        if (isNaN(amount) || amount < 10) {
-            amountErr.style.display = 'block';
-            valid = false;
-        } else {
-            amountErr.style.display = 'none';
-        }
-        
-        return valid;
-    }
-
-    // ========== ГЕНЕРАЦИЯ ЭКРАНА ОПЛАТЫ ==========
-    function generate() {
-        if (!validate()) return;
-        
-        const phone = phoneInp.value.trim();
-        const amount = amountInp.value.trim();
-        
-        // Отображаем данные
-        showAmount.textContent = amount;
-        showPhone.textContent = maskPhone(phone);
-        
-        // Переключаем экраны
-        scr1.style.display = 'none';
-        scr2.style.display = 'block';
-    }
-
-    // ========== НАЗАД ==========
-    function goBack() {
-        scr2.style.display = 'none';
-        scr1.style.display = 'block';
-    }
-
-    // ========== ПРИВЯЗКА СОБЫТИЙ ==========
-    genBtn.addEventListener('click', generate);
-    backBtn.addEventListener('click', goBack);
+    });
     
-    // Enter в поле телефона или суммы тоже запускает генерацию
-    phoneInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
-    amountInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
+    customInput.addEventListener('input', function() {
+        const val = parseInt(this.value, 10);
+        if (!isNaN(val) && val >= 10) {
+            selectedAmount = val;
+            amountError.style.display = 'none';
+        }
+    });
+    
+    // По умолчанию выделяем 500
+    document.querySelector('.amount-btn[data-amount="500"]').classList.add('selected');
+    
+    // ================== ГЕНЕРАЦИЯ QR (API Т-Банка / qr.nspk) ==================
+    function generateQR() {
+        // Формируем ссылку СБП с телефоном и суммой
+        const sbpUrl = 'https://qr.nspk.ru/transfer' +
+            '?bank=' + BANK +
+            '&phone=' + PHONE +
+            '&sum=' + selectedAmount +
+            '&cur=RUB' +
+            '&purpose=' + encodeURIComponent('Помощь Саше Белякову на лечение');
+        
+        const canvas = qrCanvas;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Используем надёжный qrserver API (работает поверх HTTPS)
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=230x230&data=' + encodeURIComponent(sbpUrl);
+        
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, 230, 230);
+        };
+        img.onerror = function() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 230, 230);
+            ctx.fillStyle = '#ff0000';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Ошибка загрузки QR', 115, 110);
+            ctx.fillText('Проверьте подключение к интернету', 115, 135);
+        };
+        
+        // Обновляем ссылку для кнопки Т-Банка
+        tbankBtn.href = sbpUrl;
+    }
+    
+    // ================== ОТКРЫТИЕ ЭКРАНА С QR ==================
+    function openQrScreen() {
+        // Если выбрана "другая сумма" — валидируем
+        if (customBlock.style.display === 'block') {
+            const val = parseInt(customInput.value, 10);
+            if (isNaN(val) || val < 10) {
+                amountError.style.display = 'block';
+                return;
+            }
+            selectedAmount = val;
+        }
+        
+        qrAmount.textContent = selectedAmount;
+        generateQR();
+        scrMain.style.display = 'none';
+        scrQr.style.display = 'block';
+    }
+    
+    function backToMain() {
+        scrQr.style.display = 'none';
+        scrMain.style.display = 'block';
+    }
+    
+    // ================== ПРИВЯЗКА ==================
+    openQrBtn.addEventListener('click', openQrScreen);
+    backBtn.addEventListener('click', backToMain);
+    
+    // Enter в поле своей суммы
+    customInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') openQrScreen();
+    });
     
 })();
 </script>

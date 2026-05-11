@@ -3,228 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата через СБП по номеру телефона</title>
+    <title>Оплата перевода</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f5f5f7;
+            background: #f0f0f5;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            padding: 20px;
         }
         .card {
             background: white;
             border-radius: 24px;
-            padding: 40px 30px;
-            max-width: 400px;
+            padding: 35px 25px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
             text-align: center;
-            margin: 20px;
-            transition: all 0.2s ease;
         }
-        h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #1d1d1f;
+        h2 { font-size: 22px; margin-bottom: 25px; color: #1d1d1f; }
+        
+        .input-group {
+            margin-bottom: 18px;
+            text-align: left;
         }
-        .amount {
-            font-size: 42px;
-            font-weight: 700;
-            color: #1d1d1f;
-            margin: 20px 0 5px;
-            letter-spacing: -1px;
-        }
-        .currency {
-            font-size: 20px;
-            font-weight: 400;
-            color: #86868b;
-            margin-left: 4px;
-        }
-        .description {
-            font-size: 16px;
-            color: #6e6e73;
-            margin-bottom: 30px;
-            line-height: 1.4;
-        }
-        .qr-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid #e5e5ea;
-            display: inline-block;
-            margin-bottom: 25px;
-        }
-        canvas {
+        .input-group label {
             display: block;
-            margin: 0 auto;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            color: #86868b;
-            font-size: 14px;
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e5ea;
+            border-radius: 14px;
+            font-size: 17px;
+            outline: none;
+            transition: 0.2s;
         }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #d2d2d7;
-        }
-        .divider::before { margin-right: 15px; }
-        .divider::after { margin-left: 15px; }
+        .input-group input:focus { border-color: #007aff; }
         
         .btn {
             background: #007aff;
             color: white;
             border: none;
-            padding: 16px 32px;
-            font-size: 18px;
+            padding: 15px;
+            font-size: 17px;
             font-weight: 600;
             border-radius: 14px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.2s ease, transform 0.1s ease;
-            margin: 10px 0;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-sizing: border-box;
+            margin-top: 8px;
+            transition: 0.2s;
         }
-        .btn:hover { background: #0066d6; }
-        .btn:active { transform: scale(0.98); }
-        
-        .btn-secondary {
-            background: #f2f2f7;
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-outline {
+            background: white;
             color: #007aff;
+            border: 2px solid #007aff;
+            margin-top: 10px;
         }
-        .btn-secondary:hover { background: #e5e5ea; }
-
-        .phone {
+        
+        .result { display: none; margin-top: 20px; }
+        .masked-phone {
+            font-size: 22px;
             font-weight: 600;
-            color: #1d1d1f;
             background: #f2f2f7;
-            padding: 4px 12px;
-            border-radius: 8px;
-            letter-spacing: 0.5px;
+            padding: 8px 18px;
+            border-radius: 12px;
+            display: inline-block;
+            margin: 10px 0;
+            letter-spacing: 1px;
         }
-        .info-text {
-            font-size: 13px;
-            color: #8e8e93;
-            margin-top: 20px;
+        .amount-big {
+            font-size: 42px;
+            font-weight: 700;
+            margin: 5px 0;
         }
+        
+        .qr-wrapper {
+            margin: 20px auto;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e5e5ea;
+            border-radius: 16px;
+            display: inline-block;
+        }
+        canvas { display: block; }
+        
+        .error { color: #ff3b30; font-size: 13px; margin-top: 6px; display: none; }
+        .hint { font-size: 12px; color: #8e8e93; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>Оплата перевода</h1>
-        <div class="amount">
-            <span id="displayAmount">590</span><span class="currency">₽</span>
+<div class="card" id="app">
+    <!-- ЭКРАН 1: ВВОД ДАННЫХ -->
+    <div id="screen1">
+        <h2>Данные для перевода</h2>
+        <div class="input-group">
+            <label>Телефон (10 цифр без +7)</label>
+            <input type="tel" id="phone" placeholder="9001234567" maxlength="10" inputmode="numeric">
+            <div class="error" id="phoneError">Введите ровно 10 цифр</div>
         </div>
-        <div class="description">
-            Перевод на карту по номеру телефона<br>
-            <span class="phone" id="displayPhone">+7 (900) 123-45-67</span>
+        <div class="input-group">
+            <label>Сумма (₽)</label>
+            <input type="number" id="amount" placeholder="590" value="590">
+            <div class="error" id="amountError">Минимум 10 ₽</div>
         </div>
-
-        <!-- Блок QR-кода СБП -->
-        <div class="qr-container">
-            <canvas id="qrCanvas"></canvas>
+        <div class="input-group">
+            <label>Банк получателя</label>
+            <input type="text" id="bank" value="sberbank" placeholder="sberbank / tinkoff / vtb">
         </div>
-        <div style="font-size: 14px; color: #86868b; margin-bottom: 10px;">
-            Наведите камеру, чтобы оплатить через СБП
-        </div>
-
-        <div class="divider">или</div>
-
-        <!-- Кнопка «Оплатить» (пытается открыть приложение банка через deep-link) -->
-        <a href="#" class="btn" id="payButton">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            Оплатить картой
-        </a>
-        
-        <div class="info-text">
-            Вы будете перенаправлены в приложение вашего банка.<br>
-            Комиссия 0% • Безопасный платёж
-        </div>
+        <button class="btn" id="generateBtn">Сгенерировать QR и ссылку</button>
+        <div class="hint">Комиссия 0% · Безопасно · СБП</div>
     </div>
 
-    <!-- Подключаем библиотеку для генерации QR-кода -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- ЭКРАН 2: QR И КНОПКА ОПЛАТЫ -->
+    <div class="result" id="screen2">
+        <div class="amount-big"><span id="showAmount">590</span> ₽</div>
+        <div class="masked-phone" id="showPhone">+7 *** ***-**-**</div>
+        
+        <div class="qr-wrapper">
+            <canvas id="qrCanvas" width="220" height="220"></canvas>
+        </div>
+        <p style="font-size:13px;color:#8e8e93;margin:5px 0;">Наведите камеру телефона</p>
+        
+        <a class="btn" id="payBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;text-decoration:none;">
+            💳 Оплатить через приложение
+        </a>
+        <button class="btn btn-outline" id="backBtn">← Назад</button>
+        <div class="hint">Нажмите кнопку выше или отсканируйте QR</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Экраны
+    const scr1 = document.getElementById('screen1');
+    const scr2 = document.getElementById('screen2');
     
-    <script>
-        // ============================================================
-        // НАСТРОЙКИ: ЗАМЕНИТЕ ДАННЫЕ НА СВОИ
-        // ============================================================
-        const phone = "79527760444";      // Номер телефона получателя (без +, только цифры)
-        const bankName = "Tbank";      // Идентификатор банка (тинькофф: tinkoff, сбер: sberbank, втб: vtb и т.д.)
-        const amount = "5900";             // Сумма к оплате
-        const displayPhone = "+7 952 776 04 44; // Номер для красивого отображения
-        // ============================================================
+    // Поля ввода
+    const phoneInp = document.getElementById('phone');
+    const amountInp = document.getElementById('amount');
+    const bankInp = document.getElementById('bank');
+    
+    // Ошибки
+    const phoneErr = document.getElementById('phoneError');
+    const amountErr = document.getElementById('amountError');
+    
+    // Кнопки
+    const genBtn = document.getElementById('generateBtn');
+    const backBtn = document.getElementById('backBtn');
+    const payBtn = document.getElementById('payBtn');
+    
+    // Отображение
+    const showAmount = document.getElementById('showAmount');
+    const showPhone = document.getElementById('showPhone');
+    const qrCanvas = document.getElementById('qrCanvas');
+    
+    let currentSbpLink = '';
 
-        // 1. ГЕНЕРАЦИЯ QR-КОДА ДЛЯ СБП
-        function generateQR() {
-            // Формат ссылки СБП согласно стандарту ЦБ РФ
-            const sbpLink = `https://qr.nspk.ru/transfer?bank=${bankName}&phone=${phone}&sum=${amount}&cur=RUB`;
-            
-            const canvas = document.getElementById('qrCanvas');
-            // Очищаем canvas перед генерацией
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            new QRious({
-                element: canvas,
-                value: sbpLink,
-                size: 200,
-                level: 'M',
-                padding: 12,
-                background: 'white',
-                foreground: '#1d1d1f'
-            });
-        }
-
-        // 2. ОБРАБОТЧИК НАЖАТИЯ НА КНОПКУ «ОПЛАТИТЬ»
-        function setupPaymentButton() {
-            document.getElementById('payButton').addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Пытаемся открыть универсальную ссылку СБП (deep-link)
-                const deepLink = `https://qr.nspk.ru/transfer?bank=${bankName}&phone=${phone}&sum=${amount}&cur=RUB`;
-                
-                // Также формируем ссылку для прямого перевода в конкретный банк (фолбэк для Сбера)
-                // Пример: sberbank://sbp/?phone=... (может отличаться в зависимости от банка)
-                const bankLinks = {
-                    "sberbank": `https://online.sberbank.ru/sbp/pay?phone=%2B${phone}&amount=${amount}`,
-                    "tinkoff": `https://www.tinkoff.ru/collect/checkout/?sum=${amount}&phone=${phone}`,
-                };
-                
-                // Пробуем открыть приложение банка
-                window.location.href = deepLink;
-                
-                // Запасной вариант: если приложение не открылось за 2 секунды,
-                // показываем инструкцию (можно раскомментировать для десктопа)
-                // setTimeout(() => {
-                //     alert('Не удалось открыть приложение банка. Пожалуйста, отсканируйте QR-код или воспользуйтесь мобильным приложением.');
-                // }, 2000);
-            });
-        }
-
-        // 3. ОТОБРАЖЕНИЕ ДАННЫХ НА СТРАНИЦЕ
-        document.getElementById('displayAmount').textContent = amount;
-        document.getElementById('displayPhone').textContent = displayPhone;
-
-        // Запускаем функции после загрузки страницы
-        window.onload = function() {
-            generateQR();
-            setupPaymentButton();
-            console.log('Платёжная страница готова. Ссылка СБП сгенерирована на телефон:', phone);
+    // ========== ГЕНЕРАЦИЯ QR БЕЗ БИБЛИОТЕКИ (чистый canvas) ==========
+    function generateQRCode(url, size) {
+        const canvas = qrCanvas;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, size, size);
+        
+        // Используем внешний API Google для генерации QR (надёжно и без библиотек)
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size + '&data=' + encodeURIComponent(url);
+        
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, size, size);
         };
-    </script>
+        img.onerror = function() {
+            // Фолбэк — рисуем заглушку
+            ctx.fillStyle = '#f0f0f5';
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = '#ff3b30';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('QR не загрузился', size/2, size/2 - 10);
+            ctx.fillText('Проверьте интернет', size/2, size/2 + 20);
+        };
+    }
+
+    // ========== МАСКИРОВКА ТЕЛЕФОНА ==========
+    function maskPhone(phone) {
+        if (phone.length === 10) {
+            return '+7 ' + phone.substr(0,3) + ' ***-**-' + phone.substr(8,2);
+        }
+        return '+7 *** ***-**-**';
+    }
+
+    // ========== ПРОВЕРКИ ==========
+    function validate() {
+        let valid = true;
+        const phone = phoneInp.value.trim();
+        const amount = parseInt(amountInp.value, 10);
+        
+        if (phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+            phoneErr.style.display = 'block';
+            valid = false;
+        } else {
+            phoneErr.style.display = 'none';
+        }
+        
+        if (isNaN(amount) || amount < 10) {
+            amountErr.style.display = 'block';
+            valid = false;
+        } else {
+            amountErr.style.display = 'none';
+        }
+        
+        return valid;
+    }
+
+    // ========== ГЕНЕРАЦИЯ ==========
+    function generate() {
+        if (!validate()) return;
+        
+        const phone = phoneInp.value.trim();
+        const amount = amountInp.value.trim();
+        const bank = bankInp.value.trim().toLowerCase() || 'sberbank';
+        
+        const fullPhone = '7' + phone;
+        
+        // Ссылка СБП
+        currentSbpLink = 'https://qr.nspk.ru/transfer?bank=' + bank + '&phone=' + fullPhone + '&sum=' + amount + '&cur=RUB';
+        
+        // Отображаем данные
+        showAmount.textContent = amount;
+        showPhone.textContent = maskPhone(phone);
+        
+        // Генерируем QR (220x220)
+        generateQRCode(currentSbpLink, 220);
+        
+        // Настраиваем кнопку оплаты
+        payBtn.href = currentSbpLink;
+        payBtn.target = '_blank';
+        
+        // Переключаем экраны
+        scr1.style.display = 'none';
+        scr2.style.display = 'block';
+    }
+
+    // ========== НАЗАД ==========
+    function goBack() {
+        scr2.style.display = 'none';
+        scr1.style.display = 'block';
+        currentSbpLink = '';
+    }
+
+    // ========== ОБРАБОТЧИК НА КНОПКУ ОПЛАТЫ (прямое открытие) ==========
+    payBtn.addEventListener('click', function(e) {
+        if (!currentSbpLink) {
+            e.preventDefault();
+            return;
+        }
+        // Пытаемся открыть приложение
+        window.open(currentSbpLink, '_blank');
+    });
+
+    // ========== ПРИВЯЗКА СОБЫТИЙ ==========
+    genBtn.addEventListener('click', generate);
+    backBtn.addEventListener('click', goBack);
+    
+    // Enter в поле телефона или суммы тоже запускает генерацию
+    phoneInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
+    amountInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
+    bankInp.addEventListener('keypress', function(e) { if (e.key === 'Enter') generate(); });
+    
+})();
+</script>
 </body>
 </html>
